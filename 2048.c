@@ -1,6 +1,6 @@
-#include<stdio.h>
-#include<graphics.h>
-#include<conio.h>
+#include <stdio.h>
+#include <graphics.h>
+#include <conio.h>
 #define MAX 4
 #define UP 72
 #define LEFT 75
@@ -8,185 +8,345 @@
 #define DOWN 80
 
 int grid[MAX][MAX];
-int is_game_running = 1;
-
-int x = 0, y = 0;
 int grid_size = 100;
 
-void select_grid(int x_next, int y_next) {
-	//setfillstyle(SOLID_FILL, BLACK);
-	//floodfill(x + 5, y + 5, WHITE);
-	setcolor(BLACK);
-	rectangle(x + 10, y + 10, x + 90, y + 90);
-	setcolor(WHITE);
-	rectangle(x_next + 10, y_next + 10, x_next + 90, y_next + 90);
-	///setfillstyle(SOLID_FILL, WHITE);
-	x = x_next;
-	y = y_next;
-}
-
-void initgrid() {
+void initgrid()
+{
 	int i, j;
-	for(i = 0; i <= MAX * grid_size; i += grid_size) {
-		line(i, 0, i, 400);
-		line(0, i, 400, i);
-	}
-	for(i = 0; i < 4; i++)
-		for(j = 0; j < 4; j++)
-			grid[i][j] = -1;
+	//for(i = 0; i <= MAX * grid_size; i += grid_size) {
+	//	line(i, 0, i, 400);
+	//	line(0, i, 400, i);
+	//}
+	for (i = 0; i < 4; i++)
+		for (j = 0; j < 4; j++)
+			grid[i][j] = 0;
 }
 
-int getthepoweroftwo(int n) {
+int getthepoweroftwo(int n)
+{
 	int i = 0;
-	if(n == -1)
+	if (n == -1)
 		return BLACK;
-	while(n > 0) {
+	while (n > 0)
+	{
 		n /= 2;
 		i++;
 	}
 	return i;
 }
 
-void update_grid(int x, int y) {
-	int color = getthepoweroftwo(grid[x % 100][y % 100]);
+/*void update_grid(int x, int y) {
+	int point;
+	char msg[128];
+	int color = getthepoweroftwo(grid[x][y]);
 	setfillstyle(SOLID_FILL, color);
-	floodfill(x + 5, y + 5, WHITE);
+	floodfill((y * 100) + 5, (x * 100) + 5, WHITE);
+//	printf("%d-%d|", (x* 100), (y*100));
+	//sprintf(msg, "%d %d", (x * 100), (y * 100));
+	//outtextxy((x * 100) + 50, (y * 100) + 50, msg);
+} */
+
+void show_grid()
+{
+	for (int i = 0; i < MAX; i++)
+	{
+		printf("| ");
+		for (int j = 0; j < MAX; j++)
+		{
+			printf("%d | ", grid[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
 }
 
-void setfreegrid() {
-	int i, j;
-	for(i = 0; i < MAX; i++) {
-		for(j = 0; j < MAX; j++) {
-			if(grid[i][j] == -1) {
+void setfreegrid()
+{
+	for (int i = 0; i < MAX; i++)
+	{
+		for (int j = 0; j < MAX; j++)
+		{
+			if (grid[i][j] == 0)
+			{
 				grid[i][j] = 2;
-				update_grid(i*100, j*100);
 				return;
 			}
 		}
 	}
-	for(i = 0; i < MAX * grid_size; i++)
-		for(j = 0; j < MAX * grid_size; j++)
-			putpixel(i, j, WHITE);
+
+	//outtextxy(250, 500, "Game Over");
+	getch();
+	//closegraph();
 }
 
-void move_grid(char move) {
-	int x_grid = x % 100;
-	int y_grid = y % 100;
-
-	printf("%d", move);
-	switch(move) {
-		case 'w': case 'W':
-			if(y > 0)
-				select_grid(x, y - grid_size);
-			break;
-		case 'a': case 'A':
-			if(x > 0)
-				select_grid(x - grid_size, y);
-			break;
-		case 's': case 'S':
-			if(y < 300)
-				select_grid(x, y + grid_size);
-			break;
-		case 'd': case 'D':
-			if(x < 300)
-				select_grid(x + grid_size, y);
-			break;
-		case UP: // up
-			printf("UP");
-			if(y_grid == 0 || grid[x_grid][y_grid] == -1)
-				return;
-			// If upper grid is blank
-			if(grid[x_grid][y_grid - 1] == -1) {
-				// We're moving a valid grid into this blank grid
-				grid[x_grid][y_grid - 1] = grid[x_grid][y_grid];
-				// Once it is moved, set current grid as blank
-				grid[x_grid][y_grid] = -1;
+int pull_up(int j)
+{
+	int i = 0, k = 0;
+	while (i < MAX)
+	{
+		if (grid[i][j] != 0)
+		{
+			i++;
+		}
+		else if (grid[i][j] == 0)
+		{
+			for (k = i + 1; k < MAX; k++)
+			{
+				if (grid[k][j] != 0)
+				{
+					break;
+				}
 			}
-			// If the current grid and next grid have same values, then
-			// Set the new grid's value = 2 times current value
-			// ^^ Only if both of these grids have the same value
-			else if(grid[x_grid][y_grid] == grid[x_grid][y_grid - 1]) {
-				grid[x_grid][y_grid - 1] *= 2;
-				grid[x_grid][y_grid] = -1;
-			} else return;
-			// Set fill color to Black
-			setfillstyle(SOLID_FILL, BLACK);
-			// Empty the current grid
-			floodfill(x, y, WHITE);
-			// This is the grid from which we would be moving on
-			select_grid(x, y - 100);
-			update_grid(x, y);
-			setfreegrid();
-			break;
-		case DOWN: // down
-			if(y_grid == MAX || grid[x_grid][y_grid] == -1)
-				return;
-			if(grid[x_grid][y_grid + 1] == -1) {
-				grid[x_grid][y_grid + 1] = grid[x_grid][y_grid];
-				grid[x_grid][y_grid] = -1;
-			} else if(grid[x_grid][y_grid] == grid[x_grid][y_grid + 1]) {
-				grid[x_grid][y_grid + 1] *= 2;
-				grid[x_grid][y_grid] = -1;
-			} else return;
-			setfillstyle(SOLID_FILL, BLACK);
-			floodfill(x, y, WHITE);
-			select_grid(x, y + 100);
-			update_grid(x, y);
-			setfreegrid();
-			break;
-		case RIGHT: // right
-			if(x_grid == MAX || grid[x_grid][y_grid] == -1)
-				return;
-			if(grid[x_grid + 1][y_grid] == -1) {
-				grid[x_grid + 1][y_grid] = grid[x_grid][y_grid];
-				grid[x_grid][y_grid] = -1;
-			} else if(grid[x_grid][y_grid] == grid[x_grid + 1][y_grid]) {
-				grid[x_grid + 1][y_grid] *= 2;
-				grid[x_grid][y_grid] = -1;
-			} else return;
-			setfillstyle(SOLID_FILL, BLACK);
-			floodfill(x, y, WHITE);
-			select_grid(x + 100, y);
-			update_grid(x, y);
-			setfreegrid();
-			break;
-		case LEFT:
-			if(x_grid == 0 || grid[x_grid][y_grid] == -1)
-				return;
-			if(grid[x_grid - 1][y_grid] == -1) {
-				grid[x_grid - 1][y_grid] = grid[x_grid][y_grid];
-				grid[x_grid][y_grid] = -1;
-			} else if(grid[x_grid][y_grid] == grid[x_grid - 1][y_grid]) {
-				grid[x_grid -  1][y_grid] *= 2;
-				grid[x_grid][y_grid] = -1;
-			} else return;
-			setfillstyle(SOLID_FILL, BLACK);
-			floodfill(x, y, WHITE);
-			select_grid(x - 100, y);
-			update_grid(x, y);
-			setfreegrid();
-			break;
+			if (k == 4)
+				k = 3;
+			if (k == MAX - 1 && grid[k][j] == 0)
+			{
+				break;
+			}
+			else
+			{
+				grid[i][j] = grid[k][j];
+				grid[k][j] = 0;
+				i++;
+			}
+		}
+	}
+	return i;
+}
+
+void slide_up()
+{
+	int i = 0, j, start;
+	for (j = 0; j < MAX; j++)
+	{
+		start = pull_up(j);
+		while (i != start)
+		{
+			if (grid[i][j] == grid[i + 1][j])
+			{
+				grid[i][j] *= 2;
+				grid[i + 1][j] = 0;
+				start = pull_up(j);
+			}
+			i++;
+		}
 	}
 }
 
-void main() {
+int pull_left(int i)
+{
+	int j = 0, k;
+	while (j < MAX)
+	{
+		if (grid[i][j] != 0)
+		{
+			j++;
+		}
+		else if (grid[i][j] == 0)
+		{
+			for (k = j + 1; k < MAX; k++)
+			{
+				if (grid[i][k] != 0)
+				{
+					break;
+				}
+			}
+			if(k == 4)
+				k = 3;
+			if (k == MAX - 1 && grid[i][k] == 0)
+				break;
+			else
+			{
+				grid[i][j] = grid[i][k];
+				grid[i][k] = 0;
+				j++;
+			}
+		}
+	}
+	return j;
+}
+
+void slide_left()
+{
+	int i, j = MAX - 1, start;
+	for (i = 0; i < MAX; i++)
+	{
+		j = 0;
+		start = pull_left(i);
+		while (j != start)
+		{
+			if (grid[i][j] == grid[i][j + 1])
+			{
+				grid[i][j] *= 2;
+				grid[i][j + 1] = 0;
+				start = pull_left(i);
+			}
+			j++;
+		}
+	}
+}
+
+int pull_down(int j)
+{
+	int i = MAX - 1, k = 0;
+	while (i >= 0)
+	{
+		if (grid[i][j] != 0)
+		{
+			i--;
+		}
+		else if (grid[i][j] == 0)
+		{
+			for (k = i - 1; k >= 0; k--)
+			{
+				if (grid[k][j] != 0)
+				{
+					break;
+				}
+			}
+			if (k == -1)
+				k = 0;
+			if (k == 0 && grid[k][j] == 0)
+			{
+				break;
+			}
+			else
+			{
+				grid[i][j] = grid[k][j];
+				grid[k][j] = 0;
+				i--;
+			}
+		}
+		if (i == 0)
+			break;
+	}
+	return i;
+}
+
+void slide_down()
+{
+	int i, j = MAX - 1, start;
+	for (j = 0; j < MAX; j++)
+	{
+		i = MAX - 1;
+		start = pull_down(j);
+		while (i != start)
+		{
+			if (grid[i][j] == grid[i - 1][j])
+			{
+				grid[i][j] *= 2;
+				grid[i - 1][j] = 0;
+				start = pull_down(j);
+			}
+			i--;
+		}
+	}
+}
+
+int pull_right(int i)
+{
+	int j = MAX - 1, k = 0;
+	while (j > 0)
+	{
+		if (grid[i][j] != 0)
+		{
+			j--;
+		}
+		else if (grid[i][j] == 0)
+		{
+			for (k = j - 1; k >= 0; k--)
+			{
+				if (grid[i][k] != 0)
+				{
+					break;
+				}
+			}
+			if (k == -1)
+				k = 0;
+			if (k == 0 && grid[i][k] == 0)
+			{
+				break;
+			}
+			else
+			{
+				grid[i][j] = grid[i][k];
+				grid[i][k] = 0;
+				j--;
+			}
+		}
+		if (j == 0)
+			break;
+	}
+	return j;
+}
+
+void slide_right()
+{
+	int i, j = MAX - 1, start;
+	for (i = 0; i < MAX; i++)
+	{
+		j = MAX - 1;
+		start = pull_right(i);
+		while (j != start)
+		{
+			if (grid[i][j] == grid[i][j - 1])
+			{
+				grid[i][j] *= 2;
+				grid[i][j - 1] = 0;
+				start = pull_right(i);
+				printf("start %d\n", start);
+			}
+			j--;
+		}
+	}
+}
+
+void move_grid(char move)
+{
+	switch (move)
+	{
+	case 'w':
+	case 'W':
+		slide_up();
+		break;
+	case 'a':
+	case 'A':
+		slide_left();
+		break;
+	case 's':
+	case 'S':
+		slide_down();
+		break;
+	case 'd':
+	case 'D':
+		slide_right();
+		break;
+	}
+	setfreegrid();
+	show_grid();
+}
+
+void main()
+{
 
 	int gd = DETECT, gm;
 	clrscr();
-	initgraph(&gd, &gm, "C:\\TC\\BGI");
-	x = 0;
-	y = 0;
+	//initgraph(&gd, &gm, "C:\\TC\\BGI");
 	initgrid();
 	setfreegrid();
+	show_grid();
 	char move;
-	while(is_game_running) {
-		if(kbhit()) {
+	// While the world revolves around its axis
+	while (1)
+	{
+		if (kbhit())
+		{
 			move = getch();
 			move_grid(move);
 		}
-		if(move == 'q' || move == 'Q')
+		if (move == 'q' || move == 'Q')
 			break;
 	}
 
-	closegraph();
+	//closegraph();
 }
