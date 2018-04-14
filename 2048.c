@@ -2,10 +2,6 @@
 #include <graphics.h>
 #include <conio.h>
 #define MAX 4
-#define UP 72
-#define LEFT 75
-#define RIGHT 77
-#define DOWN 80
 
 int grid[MAX][MAX];
 int grid_size = 100;
@@ -13,19 +9,20 @@ int grid_size = 100;
 void initgrid()
 {
 	int i, j;
-	//for(i = 0; i <= MAX * grid_size; i += grid_size) {
-	//	line(i, 0, i, 400);
-	//	line(0, i, 400, i);
-	//}
+	for (i = 0; i <= MAX * grid_size; i += grid_size)
+	{
+		line(i, 0, i, 400);
+		line(0, i, 400, i);
+	}
 	for (i = 0; i < 4; i++)
 		for (j = 0; j < 4; j++)
 			grid[i][j] = 0;
 }
 
-int getthepoweroftwo(int n)
+int powoftwo(int n)
 {
 	int i = 0;
-	if (n == -1)
+	if (n == 0)
 		return BLACK;
 	while (n > 0)
 	{
@@ -35,16 +32,19 @@ int getthepoweroftwo(int n)
 	return i;
 }
 
-/*void update_grid(int x, int y) {
+void update_grid(int i, int j)
+{
 	int point;
-	char msg[128];
-	int color = getthepoweroftwo(grid[x][y]);
-	setfillstyle(SOLID_FILL, color);
-	floodfill((y * 100) + 5, (x * 100) + 5, WHITE);
-//	printf("%d-%d|", (x* 100), (y*100));
-	//sprintf(msg, "%d %d", (x * 100), (y * 100));
-	//outtextxy((x * 100) + 50, (y * 100) + 50, msg);
-} */
+	int color;
+	color = powoftwo(grid[i][j]);
+	setfillstyle(SOLID_FILL, BLACK);
+	floodfill((j * 100) + 5, (i * 100) + 5, WHITE);
+	if (color != BLACK)
+	{
+		setfillstyle(SOLID_FILL, color);
+		floodfill((j * 100) + 5, (i * 100) + 5, WHITE);
+	}
+}
 
 void show_grid()
 {
@@ -69,14 +69,14 @@ void setfreegrid()
 			if (grid[i][j] == 0)
 			{
 				grid[i][j] = 2;
+				update_grid(i, j);
 				return;
 			}
 		}
 	}
 
-	//outtextxy(250, 500, "Game Over");
+	outtextxy(250, 500, "Game Over");
 	getch();
-	//closegraph();
 }
 
 int pull_up(int j)
@@ -107,6 +107,8 @@ int pull_up(int j)
 			{
 				grid[i][j] = grid[k][j];
 				grid[k][j] = 0;
+				update_grid(i, j);
+				update_grid(k, j);
 				i++;
 			}
 		}
@@ -126,6 +128,8 @@ void slide_up()
 			{
 				grid[i][j] *= 2;
 				grid[i + 1][j] = 0;
+				update_grid(i, j);
+				update_grid(i + 1, j);
 				start = pull_up(j);
 			}
 			i++;
@@ -151,7 +155,7 @@ int pull_left(int i)
 					break;
 				}
 			}
-			if(k == 4)
+			if (k == 4)
 				k = 3;
 			if (k == MAX - 1 && grid[i][k] == 0)
 				break;
@@ -159,6 +163,8 @@ int pull_left(int i)
 			{
 				grid[i][j] = grid[i][k];
 				grid[i][k] = 0;
+				update_grid(i, j);
+				update_grid(i, k);
 				j++;
 			}
 		}
@@ -179,6 +185,8 @@ void slide_left()
 			{
 				grid[i][j] *= 2;
 				grid[i][j + 1] = 0;
+				update_grid(i, j);
+				update_grid(i, j + 1);
 				start = pull_left(i);
 			}
 			j++;
@@ -214,6 +222,8 @@ int pull_down(int j)
 			{
 				grid[i][j] = grid[k][j];
 				grid[k][j] = 0;
+				update_grid(i, j);
+				update_grid(k, j);
 				i--;
 			}
 		}
@@ -236,6 +246,8 @@ void slide_down()
 			{
 				grid[i][j] *= 2;
 				grid[i - 1][j] = 0;
+				update_grid(i, j);
+				update_grid(i - 1, j);
 				start = pull_down(j);
 			}
 			i--;
@@ -271,6 +283,8 @@ int pull_right(int i)
 			{
 				grid[i][j] = grid[i][k];
 				grid[i][k] = 0;
+				update_grid(i, j);
+				update_grid(i, k);
 				j--;
 			}
 		}
@@ -293,8 +307,9 @@ void slide_right()
 			{
 				grid[i][j] *= 2;
 				grid[i][j - 1] = 0;
+				update_grid(i, j);
+				update_grid(i, j - 1);
 				start = pull_right(i);
-				printf("start %d\n", start);
 			}
 			j--;
 		}
@@ -323,7 +338,7 @@ void move_grid(char move)
 		break;
 	}
 	setfreegrid();
-	show_grid();
+	// show_grid();
 }
 
 void main()
@@ -331,10 +346,10 @@ void main()
 
 	int gd = DETECT, gm;
 	clrscr();
-	//initgraph(&gd, &gm, "C:\\TC\\BGI");
+	initgraph(&gd, &gm, "C:\\TC\\BGI");
 	initgrid();
 	setfreegrid();
-	show_grid();
+	//	show_grid();
 	char move;
 	// While the world revolves around its axis
 	while (1)
@@ -348,5 +363,5 @@ void main()
 			break;
 	}
 
-	//closegraph();
+	closegraph();
 }
