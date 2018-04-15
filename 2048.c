@@ -111,10 +111,11 @@ int pull_up(int j)
 		{
 			// We search for a non-zero cell from the position
 			// next to this zero cell
-			for (k = i + 1; k < BOARD_MAX; k++)
+			for (k = i + 1; k < BOARD_MAX; k++) {
 				// If we've got a valid cell, get out
 				if (grid[k][j] != 0)
 					break;
+			}
 			// The above loop stops at value BOARD_MAX, and not the specified BOARD_MAX - 1
 			if (k == BOARD_MAX)
 				k--;
